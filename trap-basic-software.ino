@@ -24,7 +24,7 @@ Servo servo2;
 
 RTC_PCF8523 rtc;
 
-bool runAtDay = true;
+bool runAtDay = false;
 
 Dusk2Dawn d2d_chch(LAT, LONG, 12);
 
@@ -47,7 +47,7 @@ void setup() {
   Serial.println("Starting setup");
 
   //run_test();
-  //set_time();   //TODO
+  //set_time();
 
   if (!runAtDay) {
     initRTC();
@@ -81,13 +81,18 @@ void setup() {
   Serial.println("Waiting for PIR 2");
   waitFor(PIR_2, HIGH);
   Serial.println("Sweeping servo 2");
-  s2(210);
+  s2(140);
 }
 
 void initRTC() {
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC!!!");
     while (true) {
+      digitalWrite(STATUS_LED, HIGH);
+      delay(4000);
+      digitalWrite(STATUS_LED, LOW);
+      delay(4000);
+      
       //TODO LED flash sequence to indicate RTC not found.
     }
   } else {
@@ -97,6 +102,11 @@ void initRTC() {
   if (rtc.lostPower()) {
     Serial.println("RTC lost power!!!");
     while (true) {
+      digitalWrite(STATUS_LED, HIGH);
+      delay(2000);
+      digitalWrite(STATUS_LED, LOW);
+      delay(2000);
+      
       //TODO LED flash sequence to indicate RTC lost power.
     }
   }
@@ -104,6 +114,10 @@ void initRTC() {
   if (!rtc.initialized()) {
     Serial.println("RTC not initialized!!!");
     while (true) {
+      digitalWrite(STATUS_LED, HIGH);
+      delay(1000);
+      digitalWrite(STATUS_LED, LOW);
+      delay(1000);
       //TODO LED flash sequence to indicate RTC is not initialized.
     }
   }
@@ -126,6 +140,10 @@ void set_time() {
   Serial.println(__DATE__);
   Serial.println(__TIME__);
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  //rtc.adjust(DateTime(F(__DATE__), F("12:00:00")));
+  while (true) {
+    delay(1000);
+  }
 }
 
 void run_test() {
