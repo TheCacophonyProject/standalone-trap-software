@@ -26,7 +26,7 @@ RTC_PCF8523 rtc;
 
 bool runAtDay = false;
 
-Dusk2Dawn d2d_chch(LAT, LONG, 12);
+Dusk2Dawn d2d_chch(LAT, LONG, 13);
 
 void setup() {
   pinMode(PIR_1, INPUT);
