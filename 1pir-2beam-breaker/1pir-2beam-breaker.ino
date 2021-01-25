@@ -49,7 +49,7 @@
 #define MINUTES_AFTER_SUNSET 60       //Number of minutes after sunset before starting trap
 #define MINUTES_BEFORE_SUNRISE 60     //Number of minutes before sunrise to stop trap
 
-Dusk2Dawn d2d_chch(LAT, LONG, 13);
+Dusk2Dawn d2d_chch(LAT, LONG, 13);    // This is in UTC+13 Will be out by one hour if in UTC+12
 
 Servo trapServo;
 Servo doorServo;
