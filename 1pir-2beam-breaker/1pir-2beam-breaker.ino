@@ -30,6 +30,7 @@
 #define SERVO_TRAP_CLOSED_ANGLE 50   // Angle to lock the mechanism in place
 #define SERVO_TRAP_OPEN_ANGLE 10  // Angle to release the mechanism
 #define SERVO_2_PIN 6
+#define BAIT_PIN A1
 
 #define SERVO_DOOR_OPEN_ANGLE 12
 #define SERVO_DOOR_CLOSED_ANGLE 98
@@ -57,9 +58,15 @@ Servo doorServo;
 RTC_DS1307 rtc;
 
 unsigned long trapTriggerTime = 0;
+//unsigned long trapResetDelayTime = 10000; //10 seconds for testing
+unsigned long trapResetDelayTime = 600000; // 10 minutes
+unsigned long baitDuration = 10000;  // 10 seconds
+//unsigned long baitDelay = 20000; // 20 seconds for testing`
+unsigned long baitDelay = 10800000; // 3 hours, 3*60*60*1000
+unsigned long baitTriggerTime = 0;
 
 enum State {
-  WAITING_FOR_NIGHT,
+  WAITING_FOR_ACTIVE_WINDOW,
   WAITING_FOR_MAIN_TRIGGER,
   WAITING_FOR_CAGE_TRIGGER,
   CAUGHT_SOMETHING
@@ -81,12 +88,8 @@ void setup() {
   pinMode(SERVO_2_PIN, OUTPUT);
   pinMode(ENABLE_6V_PIN, OUTPUT);
   pinMode(LED_STATUS_PIN, OUTPUT);
-
-  //pinMode(RX_PIN, INPUT);
-  //pinMode(TX_PIN, INPUT);
-  //digitalWrite(RX_PIN);
-  //digitalWrite(TX_PIN, LOW);
-
+  pinMode(BAIT_PIN, OUTPUT);
+  digitalWrite(BAIT_PIN, LOW);
   digitalWrite(MOTOR_ENABLE_PIN, LOW);
   digitalWrite(MOTOR_DIRECTION_PIN, LOW);
 
@@ -94,7 +97,19 @@ void setup() {
   Serial.println("Start init");
 
   initRTC();
+  initServos();
+  resetTrap(); 
+  triggerBait();
+  
+  inActiveWindow(true); // Print out time status
+  
+  Serial.println(F("Finished init"));
+  blinkStatus(STATUS_STARTING, false);
+  setState(WAITING_FOR_MAIN_TRIGGER);
+  Serial.println(F("Waiting for PIR to trigger"));
+}
 
+void initServos() {
   Serial.println("Resetting servos");
   trapServo.attach(SERVO_1_PIN);
   trapServo.write(SERVO_TRAP_CLOSED_ANGLE);
@@ -107,11 +122,39 @@ void setup() {
   delay(2000); //Give time for servos to move to there start position
   digitalWrite(ENABLE_6V_PIN, LOW);
   Serial.println("Finished resettings servos. They should be in there initial position now.");
+}
 
-  resetTrap();
+void triggerBait() {
+  Serial.println("running bait");
+  digitalWrite(BAIT_PIN, HIGH);
+  delay(baitDuration);
+  digitalWrite(BAIT_PIN, LOW);
+  baitTriggerTime = millis();
+  delay(10000);
+}
 
-  inActiveWindow(true);
-  
+void setState(State newState) {
+  if (newState == state) {
+    return;
+  }
+  state = newState;
+  switch (state) {
+  case WAITING_FOR_ACTIVE_WINDOW:
+    Serial.println(F("Switching state to: Waiting for active window"));
+    break;
+  case WAITING_FOR_MAIN_TRIGGER:
+    Serial.println(F("Switching state to: Waiting for main trigger"));
+    break;
+  case WAITING_FOR_CAGE_TRIGGER:
+    Serial.println(F("Switching state to: Waiting for cage trigger"));
+    break;
+  case CAUGHT_SOMETHING:
+    Serial.println(F("Switching state to: caught something"));
+    break;
+  default:
+    Serial.println(F("Switching to unknown state"));
+    break;
+  }
   Serial.println("Finished init");
   blinkStatus(STATUS_STARTING, false);
   Serial.println("Waiting for PIR to trigger");
@@ -119,14 +162,14 @@ void setup() {
 
 void loop() {
 
-  if (!inActiveWindow(false) && state != WAITING_FOR_NIGHT && state != WAITING_FOR_CAGE_TRIGGER) {
+  if (!inActiveWindow(false) && state != WAITING_FOR_ACTIVE_WINDOW && state != WAITING_FOR_CAGE_TRIGGER) {
     inActiveWindow(true);
     Serial.println("No longer in active window. Waiting for active window.");
-    state = WAITING_FOR_NIGHT;
+    state = WAITING_FOR_ACTIVE_WINDOW;
   }
 
   switch (state) {
-    case WAITING_FOR_NIGHT:
+    case WAITING_FOR_ACTIVE_WINDOW:
       //Wait until it is night then 
       if (inActiveWindow(false)) {
         inActiveWindow(true);
@@ -145,6 +188,11 @@ void loop() {
         state = WAITING_FOR_CAGE_TRIGGER;
         Serial.println("Waiting for animal to move into cage");
       }
+      // Check if food should be dispensed
+      if (millis() - baitTriggerTime > baitDelay) {
+        triggerBait();
+      }
+      
       break;
 
     case WAITING_FOR_CAGE_TRIGGER:
