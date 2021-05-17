@@ -6,7 +6,8 @@ class LinearActuator {
     LinearActuator(int pwmPin, int sensePin, int forwardPin, int backPin);
     void setup();
     void init();
-    void reset();
+    void forward();
+    void back();
   private:
     void rampPWMOn();
     void rampPWMOff();

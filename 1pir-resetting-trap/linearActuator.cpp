@@ -17,6 +17,7 @@ void LinearActuator::setup() {
   digitalWrite(_forwardPin, LOW);
   digitalWrite(_backPin, LOW);
   digitalWrite(_pwmPin, LOW);
+  TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz
 }
 
 void LinearActuator::init() {
@@ -24,6 +25,39 @@ void LinearActuator::init() {
   Serial.println("Done.");
 }
 
+void LinearActuator::back() {
+  Serial.println("Moving Linear actuator back");
+  digitalWrite(_forwardPin, LOW);
+  digitalWrite(_backPin, LOW);
+  delay(100);
+  digitalWrite(_pwmPin, LOW);
+  digitalWrite(_backPin, HIGH);
+  delay(100);
+  rampPWMOn();
+  waitForNoCurrent();
+  rampPWMOff();
+  digitalWrite(_forwardPin, LOW);
+  digitalWrite(_backPin, LOW);
+}
+
+
+void LinearActuator::forward() {
+  Serial.println("Moving Linear actuator forward");
+  digitalWrite(_forwardPin, LOW);
+  digitalWrite(_backPin, LOW);
+  delay(100);
+  digitalWrite(_pwmPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  delay(100);
+  rampPWMOn();
+  waitForNoCurrent();
+  rampPWMOff();
+  digitalWrite(_forwardPin, LOW);
+  digitalWrite(_backPin, LOW);
+}
+
+
+/*
 void LinearActuator::reset() {
   Serial.println("Resetting trap");
   digitalWrite(_forwardPin, LOW);
@@ -56,6 +90,7 @@ void LinearActuator::reset() {
 
   Serial.println("Finished resetting trap");
 }
+*/
 
 void LinearActuator::waitForNoCurrent() {
   int count = 0;

@@ -1,16 +1,16 @@
 #ifndef config_h
 #define config_h
 
-#define DAYTIME_MODE_PIN 1
-#define LED_STATUS_PIN 1
-#define PIR 2
+#define DAYTIME_MODE_PIN A7
+#define LED_STATUS_PIN 13
+#define PIR 11
 #define ENABLE_6V_PIN A0
 #define SERVO_PIN 5 
 #define BAIT_PIN A1
-#define LA_SENSE 4
-#define LA_PWM 3
-#define LA_FORWARD A3
-#define LA_BACK 1
+#define LA_SENSE A3
+#define LA_PWM 10
+#define LA_FORWARD 3
+#define LA_BACK 4
 
 
 #define LAT -43.388018
