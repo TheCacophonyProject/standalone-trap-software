@@ -1,105 +1,58 @@
-// Main trap has one PIR in the middle. The cage has a beam breaker sensor
-// When the PIR is triggered the trap will trigger. When the beam breaker sensor is triggered the cage door will close. 
-// If the beam breaker sensor is not triggered for ENTER_CAGE_MAX_TIME the trap will open again and we assume it was a false trigger.
-
-
-//Pins for NAME VERSION PCB
-// Note attach SENSE pin to a analog pin on the arduion
+// Main trap has one PIR in the middle and when motion is detected it triggers the trap to close.
 
 #include <RTClib.h>       // https://github.com/adafruit/RTClib
 #include <Servo.h>
 #include <Dusk2Dawn.h>    // https://github.com/dmkishi/Dusk2Dawn
 
+//========== PINS ==================
 #define DAYTIME_MODE_PIN A7
-#define PIR_1 2
-#define BEAM 7                  // Using PIR_2 plug
-#define MOTOR_DIRECTION_PIN 4
-#define MOTOR_ENABLE_PIN 3
-#define MOTOR_SENSE_PIN A3          // This needs to be modded
-#define MOTOR_OPEN_DIRECTION LOW
-#define MOTOR_CLOSE_DIRECTION HIGH
-
-
-#define TX_PIN 1
-#define RX_PIN 0
-
-#define LED_STATUS_PIN A2           //This needs to be modded
-
+#define PIR_PIN 2
+#define LED_STATUS_PIN A2
 #define ENABLE_6V_PIN A0
-#define SERVO_1_PIN 5 
-#define SERVO_TRAP_CLOSED_ANGLE 50   // Angle to lock the mechanism in place
-#define SERVO_TRAP_OPEN_ANGLE 10  // Angle to release the mechanism
-#define SERVO_2_PIN 6
+#define SERVO_PIN 5
 
-#define SERVO_DOOR_OPEN_ANGLE 12
-#define SERVO_DOOR_CLOSED_ANGLE 98
-#define SERVO_DOOR_LOCKED_ANGLE 125
-
+//========== Status codes ===========
 #define STATUS_CODE_CAUGHT_PEST 2
 #define STATUS_CODE_RTC_NOT_FOUND 3
 #define STATUS_CODE_RTC_TIME_NOT_SET 4
 #define STATUS_STARTING 20
 
-#define WAIT_SECONDS_MOVE_TO_CAGE 5 * 60
 
+#define SERVO_TRAP_CLOSED_ANGLE 50
+#define SERVO_TRAP_OPEN_ANGLE 10
 // NZ, Christchurch locatoin
 #define LAT -43.388018
 #define LONG 172.525346
-
 #define MINUTES_AFTER_SUNSET 60       //Number of minutes after sunset before starting trap
 #define MINUTES_BEFORE_SUNRISE 60     //Number of minutes before sunrise to stop trap
 
 Dusk2Dawn d2d_chch(LAT, LONG, 13);
-
 Servo trapServo;
-Servo doorServo;
-
 RTC_DS1307 rtc;
-
-unsigned long trapTriggerTime = 0;
 
 enum State {
   WAITING_FOR_NIGHT,
-  WAITING_FOR_MAIN_TRIGGER,
-  WAITING_FOR_CAGE_TRIGGER,
-  CAUGHT_SOMETHING
+  WAITING_FOR_MAIN_TRIGGER
 };
 
 State state = WAITING_FOR_MAIN_TRIGGER;
 
-bool trapOpen = false;
-bool cageDoorOpen = false;
-
 void setup() {
   pinMode(DAYTIME_MODE_PIN, INPUT);
-  pinMode(PIR_1, INPUT);
-  pinMode(BEAM, INPUT_PULLUP);
-  pinMode(MOTOR_DIRECTION_PIN, OUTPUT);
-  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
-  pinMode(MOTOR_SENSE_PIN, INPUT);
-  pinMode(SERVO_1_PIN, OUTPUT);
-  pinMode(SERVO_2_PIN, OUTPUT);
+  pinMode(PIR_PIN, INPUT);
+  pinMode(SERVO_PIN, OUTPUT);
   pinMode(ENABLE_6V_PIN, OUTPUT);
   pinMode(LED_STATUS_PIN, OUTPUT);
-
-  digitalWrite(MOTOR_ENABLE_PIN, LOW);
-  digitalWrite(MOTOR_DIRECTION_PIN, LOW);
+  digitalWrite(ENABLE_6V_PIN, LOW);
 
   Serial.begin(57600);
   Serial.println("Start init");
-
   Serial.println("Resetting servo");
-  trapServo.attach(SERVO_1_PIN);
+  trapServo.attach(SERVO_PIN);
   moveServo(trapServo, SERVO_TRAP_CLOSED_ANGLE, 1000);
   Serial.println("Finished resettings servos. They should be in there initial position now.");
-
-
   initRTC();
-
-  resetTrap();
-
   inActiveWindow(true);
-  
   Serial.println("Finished init");
   blinkStatus(STATUS_STARTING, false);
   Serial.println("Waiting for PIR to trigger");
@@ -107,7 +60,7 @@ void setup() {
 
 void loop() {
 
-  if (!inActiveWindow(false) && state != WAITING_FOR_NIGHT && state != WAITING_FOR_CAGE_TRIGGER) {
+  if (!inActiveWindow(false) && state != WAITING_FOR_NIGHT) {
     inActiveWindow(true);
     Serial.println("No longer in active window. Waiting for active window.");
     state = WAITING_FOR_NIGHT;
@@ -125,64 +78,14 @@ void loop() {
 
     case WAITING_FOR_MAIN_TRIGGER:
       //Waiting for the PIR to be triggered
-      if (digitalRead(PIR_1) == HIGH) {
+      if (digitalRead(PIR_PIN) == HIGH) {
         Serial.println("Main PIR triggered. Closing blinds");
         moveServo(trapServo, SERVO_TRAP_OPEN_ANGLE, 1000);
         moveServo(trapServo, SERVO_TRAP_CLOSED_ANGLE, 1000);
-        Serial.println("Waiting to reset trap");
-        delay(1000*5*60);
-        resetTrap();
-        delay(10*1000);
-        Serial.println("Ready to trap again.");
+        blinkStatus(STATUS_CODE_CAUGHT_PEST, true);
       }
       break;
   }
-}
-
-
-void resetTrap() {
-  Serial.println("Opening up trap.");
-  digitalWrite(MOTOR_DIRECTION_PIN, MOTOR_OPEN_DIRECTION);
-  digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-  delay(2000);
-  int noCurrentCounter = 0;
-  while (true) {
-    int a = analogRead(MOTOR_SENSE_PIN);
-    if (a == 0) {
-      Serial.println("no current in motors");
-      noCurrentCounter++;
-    } else {
-      noCurrentCounter = 0;
-    }
-    if (noCurrentCounter > 5) {
-      break;
-    }
-    delay(200);
-  }
-  digitalWrite(MOTOR_ENABLE_PIN, LOW);
-
-  Serial.println("Moving linear actuator back");
-
-  digitalWrite(MOTOR_DIRECTION_PIN, MOTOR_CLOSE_DIRECTION);
-  digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-  delay(2000);
-  noCurrentCounter = 0;
-  while (true) {
-    int a = analogRead(MOTOR_SENSE_PIN);
-    if (a == 0) {
-      Serial.println("no current in motors");
-      noCurrentCounter++;
-    } else {
-      noCurrentCounter = 0;
-    }
-    if (noCurrentCounter > 5) {
-      break;
-    }
-    delay(200);
-  }
-  digitalWrite(MOTOR_ENABLE_PIN, LOW);
-
-  Serial.println("Finished resetting trap.");
 }
 
 void blinkStatus(int code, bool loopForever) {
