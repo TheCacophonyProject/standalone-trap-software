@@ -11,8 +11,8 @@
 #define BAIT_PIN A1
 #define LA_SENSE A3
 #define LA_PWM 10
-#define LA_FORWARD 3
-#define LA_BACK 4
+#define LA_FORWARD 4
+#define LA_BACK 3
 
 
 #define LAT -43.388018

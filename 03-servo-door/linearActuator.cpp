@@ -14,8 +14,8 @@ void LinearActuator::setup() {
   pinMode(_forwardPin, OUTPUT);
   pinMode(_backPin, OUTPUT);
   pinMode(_pwmPin, OUTPUT);
-  digitalWrite(_forwardPin, LOW);
-  digitalWrite(_backPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_backPin, HIGH);
   digitalWrite(_pwmPin, LOW);
   TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz
 }
@@ -27,33 +27,33 @@ void LinearActuator::init() {
 
 void LinearActuator::back() {
   Serial.println("Moving Linear actuator back");
-  digitalWrite(_forwardPin, LOW);
-  digitalWrite(_backPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_backPin, HIGH);
   delay(100);
   digitalWrite(_pwmPin, LOW);
-  digitalWrite(_backPin, HIGH);
+  digitalWrite(_backPin, LOW);
   delay(100);
   rampPWMOn();
   waitForNoCurrent();
   rampPWMOff();
-  digitalWrite(_forwardPin, LOW);
-  digitalWrite(_backPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_backPin, HIGH);
 }
 
 
 void LinearActuator::forward() {
   Serial.println("Moving Linear actuator forward");
-  digitalWrite(_forwardPin, LOW);
-  digitalWrite(_backPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_backPin, HIGH);
   delay(100);
   digitalWrite(_pwmPin, LOW);
-  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_forwardPin, LOW);
   delay(100);
   rampPWMOn();
   waitForNoCurrent();
   rampPWMOff();
-  digitalWrite(_forwardPin, LOW);
-  digitalWrite(_backPin, LOW);
+  digitalWrite(_forwardPin, HIGH);
+  digitalWrite(_backPin, HIGH);
 }
 
 void LinearActuator::waitForNoCurrent() {
