@@ -40,16 +40,16 @@ void setup() {
   pinMode(BAIT_PIN, OUTPUT);
   digitalWrite(BAIT_PIN, LOW);
 
-
   //============ INIT SYSTEMS ===============
   Serial.begin(57600);
   Serial.println("Start init systems");
   rtc.init();
+  //rtc.setTime();
+  rtc.isInActiveWindow(true); // Print out time status
   linearActuator.init();
   initServo();
   resetTrap();
   triggerBait();
-  rtc.isInActiveWindow(true); // Print out time status
   Serial.println(F("Finished init"));
   
   blinkStatus(STATUS_STARTING, false);
