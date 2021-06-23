@@ -84,6 +84,10 @@ void setState(State newState) {
 void loop() {
   switch (state) {
     case WAITING_FOR_ACTIVE_WINDOW:
+      if (digitalRead(BAIT_TRIG_PIN) == LOW) {
+        Serial.println("manual trigger of bait");
+        triggerBait();
+      }
       if (rtc.isInActiveWindow(false)) {
         rtc.isInActiveWindow(true);
         Serial.println("Active window started. Waiting for main trigger.");
@@ -150,6 +154,7 @@ void initBait() {
 
 void checkBait(bool printMessages) {
   if (digitalRead(BAIT_TRIG_PIN) == LOW) {
+    Serial.println("manual trigger of bait");
     triggerBait();
   }
   long d = analogRead(BAIT_DELAY_PIN);
@@ -159,7 +164,8 @@ void checkBait(bool printMessages) {
     }
     return;
   }
-  d = map(d, 0, 1024, BAIT_DELAY_MIN, BAIT_DELAY_MAX);
+  d = map(d, 0, 1024, BAIT_DELAY_MIN/1000, BAIT_DELAY_MAX/1000); // was getting overflow 
+  d = d*1000;
   if (printMessages) {
     Serial.print("bait delay: ");
     Serial.println(d);
@@ -172,12 +178,12 @@ void checkBait(bool printMessages) {
 void triggerBait() {
   long duration = map(analogRead(BAIT_DURATION_PIN), 0, 1024, BAIT_DURATION_MIN, BAIT_DURATION_MAX);
   Serial.print("running bait for: ");
-  Serial.print(duration);
+  Serial.println(duration);
   digitalWrite(BAIT_PIN, HIGH);
   delay(duration);
   digitalWrite(BAIT_PIN, LOW);
   baitTriggerTime = millis();
-  Serial.print("Stopping bait and waiting 10 seconds before returning to main loop");
+  Serial.println("Stopping bait and waiting 10 seconds before returning to main loop");
   delay(10000); // Wait 10 seconds so if the bait movement triggered the PIR it has time to turn off.
 }
 

@@ -13,8 +13,8 @@
 #define LA_PWM 9
 #define LA_FORWARD 8
 #define LA_BACK 7
-#define BAIT_DURATION_PIN A2
-#define BAIT_DELAY_PIN A1
+#define BAIT_DURATION_PIN A1
+#define BAIT_DELAY_PIN A2
 #define BAIT_TRIG_PIN 12
 
 
@@ -27,9 +27,9 @@
 #define STATUS_CODE_CAUGHT_PEST 2
 #define STATUS_CODE_RTC_NOT_FOUND 3
 #define STATUS_CODE_RTC_TIME_NOT_SET 4
-#define STATUS_STARTING 20
+#define STATUS_STARTING 5
 
-#define FORCE_SET_RTC true
+#define FORCE_SET_RTC false
 
 #define SERVO_CLOSED_ANGLE 50   // Angle to lock the mechanism in place
 #define SERVO_OPEN_ANGLE 10  // Angle to release the mechanism
