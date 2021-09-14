@@ -26,7 +26,7 @@ void RTC::init() {
   if (dateTimeMatchEEPROMDateTime()) {
     // RTC already written to. Check that the RTC hasn't lost track.
     printDateTime(DateTime(F(__DATE__), F(__TIME__)));
-    Serial.println("a");
+    
     if (rtc.now().unixtime() < DateTime(F(__DATE__), F(__TIME__)).unixtime()) {
       Serial.print("RTC has lost track of time. It thinks the time is ");
       printDateTime(rtc.now());
