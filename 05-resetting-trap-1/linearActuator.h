@@ -8,9 +8,9 @@ class LinearActuator {
     void init();
     void forward();
     void back();
-  private:
     void rampPWMOn();
     void rampPWMOff();
+  private:
     void waitForNoCurrent();
     int _pwmPin;
     int _sensePin;

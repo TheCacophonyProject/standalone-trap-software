@@ -31,6 +31,7 @@ void setup() {
   rtc.setup();
   pinMode(PIR, INPUT);
   pinMode(6, INPUT);
+  pinMode(9, INPUT);
   pinMode(SERVO_PIN, OUTPUT);
   digitalWrite(SERVO_PIN, LOW);
   pinMode(ENABLE_6V_PIN, OUTPUT);
@@ -46,6 +47,19 @@ void setup() {
   //============ INIT SYSTEMS ===============
   Serial.begin(57600);
   Serial.println("Start init systems");
+
+
+  //============ TESTS ======================
+  //rtcTest();
+  //linearActuator.init();
+  //testRampPWMOnAndOff();
+  //testPWM();
+  testLinearActuator();
+  //testFeeder();
+  //testDigitalIO();
+  //servoAngleTest();
+
+  
   rtc.init();
   rtc.setTime();
   rtc.isInActiveWindow(true); // Print out time status
@@ -190,9 +204,122 @@ void triggerBait() {
 
 //===================================
 void resetTrap() {
+  trapServo.detach();
   linearActuator.back();
   linearActuator.forward();
+  trapServo.attach(SERVO_PIN, 500, 2500);
   moveServo(trapServo, SERVO_OPEN_ANGLE, 1000);
   moveServo(trapServo, SERVO_CLOSED_ANGLE, 1000);
+  trapServo.detach();
   linearActuator.back();
+}
+
+//========== TEST ==================
+
+void rtcTest() {
+  rtc.init();
+  rtc.setTime();
+  while(true) {
+    rtc.isInActiveWindow(true); // Print out time status
+    delay(5000);
+  }
+}
+
+void servoAngleTest() {
+  trapServo.attach(SERVO_PIN, 500, 2500);
+  digitalWrite(ENABLE_6V_PIN, HIGH);
+  Serial.println("Waiting for input");
+  while (true) {
+    String s = Serial.readStringUntil('\n');
+    digitalWrite(ENABLE_6V_PIN, HIGH);
+    if (s != "") {
+      Serial.println(s);
+      int i = s.toInt();
+      Serial.println(i);
+      trapServo.writeMicroseconds(i);
+      Serial.println("Waiting for input");
+    }
+  }
+}
+
+void testRampPWMOnAndOff() {
+  while(true) {
+    int i = 0;
+    Serial.println(LA_PWM);
+    Serial.println("ramp PWM on");
+    while (i < 255) {
+      analogWrite(LA_PWM, i);
+      delay(10);
+      i++;
+    }
+    digitalWrite(LA_PWM, HIGH);
+  
+  
+    i = 255;
+    Serial.println("ramp PWM off");
+    while (i > 0) {
+      analogWrite(LA_PWM, i);
+      delay(10);
+      i--;
+    }
+    digitalWrite(LA_PWM, LOW);
+  }
+}
+
+void testPWM() {
+  Serial.println("Waiting for input 0 to 255 for testing PWM");
+  while (true) {
+    String s = Serial.readStringUntil('\n');
+    if (s != "") {
+      Serial.println(s);
+      int i = s.toInt();
+      Serial.println(i);
+      analogWrite(LA_PWM, i);
+      Serial.println("Waiting for input");
+    }
+  }
+}
+
+void testLinearActuator(){
+  initServo();
+  while(true) {
+    //linearActuator.back();
+    //linearActuator.forward();
+    
+    resetTrap();
+  }
+}
+
+void testFeeder() {
+  while(true){
+    Serial.println("feeder on");
+    digitalWrite(BAIT_PIN, HIGH);
+    delay(5000);
+
+    Serial.println("feeder off");
+    digitalWrite(BAIT_PIN, LOW);
+    delay(5000);
+  }
+  
+}
+
+void testDigitalIO() {
+  while(true) {
+    Serial.println("====================================");
+    Serial.print("bait trig: ");
+    Serial.println(digitalRead(BAIT_TRIG_PIN));
+    
+    Serial.print("bait duration: ");
+    Serial.println(analogRead(BAIT_DURATION_PIN));
+  
+    Serial.print("bait delay: ");
+    Serial.println(analogRead(BAIT_DELAY_PIN));
+
+    Serial.print("PIR: ");
+    Serial.println(digitalRead(PIR));
+
+    Serial.print("24/7: ");
+    Serial.println(digitalRead(DAYTIME_MODE_PIN));
+    delay(1000);
+  }
 }

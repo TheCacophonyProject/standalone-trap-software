@@ -17,7 +17,8 @@ void LinearActuator::setup() {
   digitalWrite(_forwardPin, LOW);
   digitalWrite(_backPin, LOW);
   digitalWrite(_pwmPin, LOW);
-  TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz for D9 and D10
+  //TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz for D9 and D10
+  TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz for D3 and D11
 }
 
 void LinearActuator::init() {
@@ -69,6 +70,8 @@ void LinearActuator::waitForNoCurrent() {
 
 void LinearActuator::rampPWMOn() {
   int i = 0;
+  Serial.println(_pwmPin);
+  Serial.println("ramp PWM on");
   while (i < 255) {
     analogWrite(_pwmPin, i);
     delay(2);
@@ -79,6 +82,7 @@ void LinearActuator::rampPWMOn() {
 
 void LinearActuator::rampPWMOff() {
   int i = 255;
+  Serial.println("ramp PWM off");
   while (i > 0) {
     analogWrite(_pwmPin, i);
     delay(2);
