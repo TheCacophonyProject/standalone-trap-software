@@ -33,12 +33,6 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 1; i <= 29; i++) {
-    Serial.println(i);
-    cycle(s2);
-    delay(WAIT_MILLS);
-  }
-  Serial.println("cycle s2");
   cycle(s2);
   delay(WAIT_MILLS);
 }
@@ -55,5 +49,5 @@ void cycle(Servo s) {
   delay(3000);
   s.writeMicroseconds(SERVO_HOME);
   delay(3000);
-  digitalWrite(ENABLE_6V_PIN, LOW);
+  //digitalWrite(ENABLE_6V_PIN, LOW);
 }
