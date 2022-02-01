@@ -2,7 +2,7 @@
 #include "Config.h"
 #include "util.h"
 
-#include <RTClib.h>     / https://github.com/adafruit/RTClib
+#include <RTClib.h>     // https://github.com/adafruit/RTClib
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
 
 Dusk2Dawn d2d_chch(LAT, LONG, 13);

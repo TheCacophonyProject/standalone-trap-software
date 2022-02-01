@@ -2,7 +2,7 @@
 #include "Config.h"
 #include "util.h"
 
-#include <RTClib.h>     / https://github.com/adafruit/RTClib
+#include <RTClib.h>     // https://github.com/adafruit/RTClib
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
 
 Dusk2Dawn d2d_chch(LAT, LONG, 13);
@@ -17,10 +17,10 @@ void RTC::init() {
   Serial.print("Running RTC init...  ");
   if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
-    return STATUS_CODE_RTC_NOT_FOUND;
+    return; // STATUS_CODE_RTC_NOT_FOUND;
   } else if (!rtc.isrunning()) {
     Serial.println("RTC is NOT running.");
-    return STATUS_CODE_RTC_TIME_NOT_SET;
+    return; // STATUS_CODE_RTC_TIME_NOT_SET;
   }
   Serial.println("Done");
 }

@@ -6,13 +6,16 @@
 #define PIR 2
 //#define BEAM 7
 #define ENABLE_6V_PIN 4
-#define SERVO_PIN 5
+#define SERVO_1_PIN 5
+#define SERVO_2_PIN 11
+
+//#define SERVO_PIN 11
 //#define SERVO_DOOR_PIN 6
 #define BAIT_PIN 6
-#define LA_SENSE A0
-#define LA_PWM 11
-#define LA_FORWARD 8
-#define LA_BACK 7
+//#define LA_SENSE A0
+//#define LA_PWM 11
+//#define LA_FORWARD 8
+//#define LA_BACK 7
 #define BAIT_DURATION_PIN A1
 #define BAIT_DELAY_PIN A2
 #define BAIT_TRIG_PIN 12
@@ -28,10 +31,13 @@
 #define STATUS_CODE_RTC_TIME_NOT_SET 4
 #define STATUS_STARTING 5
 
-#define FORCE_SET_RTC false
-
 #define SERVO_CLOSED_ANGLE 50   // Angle to lock the mechanism in place
 #define SERVO_OPEN_ANGLE 10  // Angle to release the mechanism
+
+#define SERVO_HOME 2300     // Home position, waiting to trigger.
+#define SERVO_TRIGGER 2450  // Angle to trigger spool.
+#define SERVO_RESET 550     // Angle to reset spool.
+#define WAIT_MILLS 10000
 
 #define RESET_WAIT_TIME 600000 // 10 minnutes in millisecodns 10*60*1000
 
