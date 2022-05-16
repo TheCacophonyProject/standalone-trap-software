@@ -50,6 +50,7 @@ void setup() {
 
   //============ INIT SYSTEMS ===============
   Serial.begin(57600);
+  Serial.println("\n\nCode: 09-resetting-trap-spool-reset-back-door");
   Serial.println("Start init systems");
 
 
