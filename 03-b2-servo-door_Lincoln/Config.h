@@ -36,6 +36,13 @@
 #define SERVO_DOOR_CLOSED_ANGLE 20
 #define SERVO_DOOR_LOCKED_ANGLE 100
 
+#define SERVO_DOWN 2000
+#define SERVO_LOCK 1200
+#define SERVO_DOOR_HOLD 1550
+#define SERVO_RELEASE 1050
+#define SERVO_TRIG_HOLD 1300
+#define RATCHET_CYCLES 10
+
 #define RESET_WAIT_TIME 600000 // 10 minnutes in millisecodns 10*60*1000
 
 #define BAIT_DURATION 10000  // 10 seconds in milliseconds 

@@ -44,11 +44,12 @@ void setup() {
   //============ INIT SYSTEMS ===============
   Serial.begin(57600);
   Serial.println("Start init systems");
-  Serial.println("Running 03-b2-servo-door");
+  Serial.println("Running 03-b2-servo-door_Lincoln");
   rtc.init();
   linearActuator.init();
   initServo();
   resetTrap();
+  resetRatchetDoor();
   triggerBait();
   rtc.isInActiveWindow(true); // Print out time status
   Serial.println(F("Finished init"));
@@ -98,7 +99,8 @@ void loop() {
       }
       //Waiting for the PIR to be triggered
       if (digitalRead(PIR) == LOW) {
-        Serial.println("Main PIR triggered. Closing blinds");
+        Serial.println("Main PIR triggered. Closing blinds in 3 seconds");
+        delay(3000);
         lastMovementTime = millis();
 
         moveServo(trapServo, SERVO_OPEN_ANGLE, 1000);
@@ -119,6 +121,7 @@ void loop() {
       }
       if (digitalRead(PIR_2) == LOW) {
         closeDoor();
+        resetTrap();
         blinkStatus(STATUS_CODE_CAUGHT_PEST, true);
       }
       if (millis() - lastMovementTime > RESET_WAIT_TIME) {
@@ -150,6 +153,29 @@ void moveServo(Servo s, int angle, int mill) {
 void closeDoor() {
   moveServo(doorServo, SERVO_DOOR_CLOSED_ANGLE, 4000);
   moveServo(doorServo, SERVO_DOOR_LOCKED_ANGLE, 2000);
+}
+
+void resetRatchetDoor() {
+  digitalWrite(ENABLE_6V_PIN, HIGH);
+  Serial.println("Starting ratchet cycle");
+  for (int i = 0; i < RATCHET_CYCLES; i++) {
+    Serial.print("Cycle: ");
+    Serial.println(i+1);
+    doorServo.writeMicroseconds(SERVO_DOWN);
+    delay(1000);
+    doorServo.writeMicroseconds(SERVO_LOCK);
+    delay(1000);
+  }
+  doorServo.writeMicroseconds(SERVO_TRIG_HOLD);
+  digitalWrite(ENABLE_6V_PIN, LOW);
+}
+
+void triggerRatchetDoor() {
+  Serial.println("Releasing door");
+  digitalWrite(ENABLE_6V_PIN, HIGH);
+  doorServo.writeMicroseconds(SERVO_RELEASE);
+  delay(1000);
+  digitalWrite(ENABLE_6V_PIN, LOW);
 }
 
 //===================BAIT==============
