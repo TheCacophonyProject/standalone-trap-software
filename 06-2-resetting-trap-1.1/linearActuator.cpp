@@ -22,12 +22,12 @@ void LinearActuator::setup() {
 }
 
 void LinearActuator::init() {
-  Serial.print("Running LinearActuator init...  ");
-  Serial.println("Done.");
+  Serial.print(F("Running LinearActuator init...  "));
+  Serial.println(F("Done."));
 }
 
 void LinearActuator::back() {
-  Serial.println("Moving Linear actuator back");
+  Serial.println(F("Moving Linear actuator back"));
   digitalWrite(_forwardPin, LOW);
   digitalWrite(_backPin, LOW);
   delay(100);
@@ -43,7 +43,7 @@ void LinearActuator::back() {
 
 
 void LinearActuator::forward() {
-  Serial.println("Moving Linear actuator forward");
+  Serial.println(F("Moving Linear actuator forward"));
   digitalWrite(_forwardPin, LOW);
   digitalWrite(_backPin, LOW);
   delay(100);

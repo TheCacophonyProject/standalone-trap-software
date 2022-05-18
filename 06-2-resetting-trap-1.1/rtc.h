@@ -14,8 +14,6 @@ class RTC {
     private:
       boolean dateTimeMatchEEPROMDateTime(DateTime);
       void writeDateTimeToEEPROM(DateTime);
-      void printDateTime(DateTime);
-
 };
 
 #endif

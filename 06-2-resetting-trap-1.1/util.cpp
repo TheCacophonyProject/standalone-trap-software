@@ -18,19 +18,19 @@ void printMIn24(int m) {
 void blinkStatus(int code, bool loopForever) {
   switch (code) {
     case STATUS_CODE_RTC_NOT_FOUND:
-      Serial.println("RTC not found");
+      Serial.println(F("RTC not found"));
       break;
     case STATUS_CODE_RTC_TIME_NOT_SET:
-      Serial.println("RTC Time not set");
+      Serial.println(F("RTC Time not set"));
       break;
     case STATUS_STARTING:
-      Serial.println("Starting LED blink");
+      Serial.println(F("Starting LED blink"));
       break;
     case STATUS_CODE_CAUGHT_PEST:
       Serial.println(F("Switching state to: caught something"));
       break;
     default: 
-      Serial.print("Unknown status code: ");
+      Serial.print(F("Unknown status code: "));
       Serial.println(code);
       break;
   }
