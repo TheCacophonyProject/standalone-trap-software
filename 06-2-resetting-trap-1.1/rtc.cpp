@@ -7,7 +7,7 @@
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
 #define a b
 
-Dusk2Dawn d2d_chch(LAT, LONG, 13);
+Dusk2Dawn d2d_chch(LAT, LONG, 12);
 
 void RTC::setup() {
   pinMode(DAYTIME_MODE_PIN, INPUT_PULLUP);
