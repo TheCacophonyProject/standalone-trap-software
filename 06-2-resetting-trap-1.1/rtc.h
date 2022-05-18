@@ -6,14 +6,14 @@
 class RTC {
     public:
         void setup();
-        void init();
+        void init(DateTime);
         DateTime getDateTime();
         bool isInActiveWindow(bool);
         int nightOfTheWeek();
         RTC_DS1307 rtc;
     private:
-      boolean dateTimeMatchEEPROMDateTime();
-      void writeDateTimeToEEPROM();
+      boolean dateTimeMatchEEPROMDateTime(DateTime);
+      void writeDateTimeToEEPROM(DateTime);
       void printDateTime(DateTime);
 
 };

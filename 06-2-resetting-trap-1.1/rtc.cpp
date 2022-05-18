@@ -13,7 +13,7 @@ void RTC::setup() {
   pinMode(DAYTIME_MODE_PIN, INPUT_PULLUP);
 }
 
-void RTC::init() {
+void RTC::init(DateTime compileDateTime) {
   Serial.print("Running RTC init...  ");
   if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -23,15 +23,15 @@ void RTC::init() {
     return; // STATUS_CODE_RTC_TIME_NOT_SET;
   }
   
-  if (dateTimeMatchEEPROMDateTime()) {
+  if (dateTimeMatchEEPROMDateTime(compileDateTime)) {
     // RTC already written to. Check that the RTC hasn't lost track.
-    printDateTime(DateTime(F(__DATE__), F(__TIME__)));
+    printDateTime(compileDateTime);
     
-    if (rtc.now().unixtime() < DateTime(F(__DATE__), F(__TIME__)).unixtime()) {
+    if (rtc.now().unixtime() < compileDateTime.unixtime()) {
       Serial.print("RTC has lost track of time. It thinks the time is ");
       printDateTime(rtc.now());
       Serial.print("But the code was updated on");
-      printDateTime(DateTime(F(__DATE__), F(__TIME__)));
+      printDateTime(compileDateTime);
       blinkStatus(STATUS_CODE_RTC_TIME_NOT_SET, true);
       return;
     }
@@ -39,14 +39,14 @@ void RTC::init() {
     return;
   }
 
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  writeDateTimeToEEPROM();
+  rtc.adjust(compileDateTime);
+  writeDateTimeToEEPROM(compileDateTime);
   Serial.println("New time written to RTC");
 }
 
 // Check if the datetime has already been written to the RTC.
-boolean RTC::dateTimeMatchEEPROMDateTime() {
-  String datetime = String(__DATE__)+String(__TIME__);
+boolean RTC::dateTimeMatchEEPROMDateTime(DateTime dt) {
+  String datetime = dt.timestamp();
   for (int i = 0; i<datetime.length(); i++) {
     if (EEPROM.read(i) != int(datetime[i])) {
       Serial.println("Writing new time to RTC");
@@ -66,8 +66,8 @@ int RTC::nightOfTheWeek(){
 }
 
 //Save date time that was writtent to EEPROM so next boot it won't write to the RTC again.
-void RTC::writeDateTimeToEEPROM() {
-  String datetime = String(__DATE__)+String(__TIME__);
+void RTC::writeDateTimeToEEPROM(DateTime dt) {
+  String datetime = dt.timestamp();
   for (int i = 0; i<datetime.length(); i++) {
     EEPROM.write(i, int(datetime[i]));
   }

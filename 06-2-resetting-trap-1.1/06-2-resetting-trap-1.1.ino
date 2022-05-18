@@ -60,7 +60,7 @@ void setup() {
   //testDigitalIO();
   //servoAngleTest();
 
-  rtc.init();
+  rtc.init(DateTime(F(__DATE__), F(__TIME__)));
   EEPROM.write(100, 0);
   rtc.isInActiveWindow(true); // Print out time status
   linearActuator.init();
@@ -226,7 +226,7 @@ void resetTrap() {
 //========== TEST ==================
 
 void testRTC() {
-  rtc.init();
+  rtc.init(DateTime(F(__DATE__), F(__TIME__)));
   while(true) {
     rtc.isInActiveWindow(true); // Print out time status
     delay(5000);
