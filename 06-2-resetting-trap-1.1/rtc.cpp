@@ -19,7 +19,6 @@ void RTC::init(DateTime compileDateTime) {
     return; // STATUS_CODE_RTC_NOT_FOUND;
   } else if (!rtc.isrunning()) {
     Serial.println(F("RTC is NOT running."));
-    return; // STATUS_CODE_RTC_TIME_NOT_SET;
   }
   
   if (dateTimeMatchEEPROMDateTime(compileDateTime)) {
