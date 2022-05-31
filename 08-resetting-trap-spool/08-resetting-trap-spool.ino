@@ -62,7 +62,7 @@ void setup() {
   //servoAngleTest();
 
   
-  rtc.init();
+  rtc.init(DateTime(F(__DATE__), F(__TIME__)));
   rtc.isInActiveWindow(true); // Print out time status
 //  linearActuator.init();
   initServo();
@@ -272,11 +272,11 @@ void foo() {
 //========== TEST ==================
 
 void testRTC() {
-  rtc.init();
-  while(true) {
-    rtc.isInActiveWindow(true); // Print out time status
-    delay(5000);
-  }
+  //rtc.init();
+  //while(true) {
+  //  rtc.isInActiveWindow(true); // Print out time status
+   // delay(5000);
+ // }
 }
 /*
 void servoAngleTest() {
