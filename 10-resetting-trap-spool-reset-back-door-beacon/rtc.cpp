@@ -5,7 +5,6 @@
 
 #include <RTClib.h>     // https://github.com/adafruit/RTClib
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
-#define a b
 
 Dusk2Dawn d2d_chch(LAT, LONG, 12);
 

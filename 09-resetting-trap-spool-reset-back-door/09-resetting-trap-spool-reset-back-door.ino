@@ -126,7 +126,7 @@ void loop() {
       if (digitalRead(PIR) == LOW) {
         Serial.println("Main PIR triggered. Closing blinds");
         lastMovementTime = millis();
-
+        delay(2000);
         triggerTrap();
         setState(WAITING_FOR_CAGE_PIR);
         Serial.println("Waiting for animal to move into cage");

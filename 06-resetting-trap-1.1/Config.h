@@ -10,7 +10,7 @@
 //#define SERVO_DOOR_PIN 6
 #define BAIT_PIN 6
 #define LA_SENSE A0
-#define LA_PWM 11
+#define LA_PWM 9
 #define LA_FORWARD 8
 #define LA_BACK 7
 #define BAIT_DURATION_PIN A1

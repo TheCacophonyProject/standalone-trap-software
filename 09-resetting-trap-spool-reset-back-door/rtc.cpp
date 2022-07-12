@@ -5,7 +5,6 @@
 
 #include <RTClib.h>     // https://github.com/adafruit/RTClib
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
-#define a b
 
 Dusk2Dawn d2d_chch(LAT, LONG, 13);
 
@@ -14,12 +13,12 @@ void RTC::setup() {
 }
 
 void RTC::init() {
-  Serial.print("Running RTC init...  ");
+  Serial.print(F("Running RTC init...  "));
   if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    Serial.println(F("Couldn't find RTC"));
     return; // STATUS_CODE_RTC_NOT_FOUND;
   } else if (!rtc.isrunning()) {
-    Serial.println("RTC is NOT running.");
+    Serial.println(F("RTC is NOT running."));
     return; // STATUS_CODE_RTC_TIME_NOT_SET;
   }
   
@@ -28,9 +27,9 @@ void RTC::init() {
     printDateTime(DateTime(F(__DATE__), F(__TIME__)));
     
     if (rtc.now().unixtime() < DateTime(F(__DATE__), F(__TIME__)).unixtime()) {
-      Serial.print("RTC has lost track of time. It thinks the time is ");
+      Serial.print(F("RTC has lost track of time. It thinks the time is "));
       printDateTime(rtc.now());
-      Serial.print("But the code was updated on");
+      Serial.print(F("But the code was updated on"));
       printDateTime(DateTime(F(__DATE__), F(__TIME__)));
       blinkStatus(STATUS_CODE_RTC_TIME_NOT_SET, true);
       return;
@@ -41,7 +40,7 @@ void RTC::init() {
 
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   writeDateTimeToEEPROM();
-  Serial.println("New time written to RTC");
+  Serial.println(F("New time written to RTC"));
 }
 
 // Check if the datetime has already been written to the RTC.
@@ -78,7 +77,7 @@ void RTC::printDateTime(DateTime d) {
 bool RTC::isInActiveWindow(bool printMessages) {
   DateTime now = rtc.now();
   if (printMessages) {
-    Serial.print("current datetime is");
+    Serial.print(F("current datetime is"));
     printDateTime(now);
   }
   if (digitalRead(DAYTIME_MODE_PIN) == LOW) {
@@ -93,17 +92,17 @@ bool RTC::isInActiveWindow(bool printMessages) {
   int stopMinute = d2d_chch.sunrise(now.year(), now.month(), now.day(), false) - MINUTES_BEFORE_SUNRISE;
   
   if (printMessages) {  
-    Serial.print("Time of day: ");
+    Serial.print(F("Time of day: "));
     printMIn24(minutesFromMidnight);
-    Serial.print("Startig at : ");
+    Serial.print(F("Startig at : "));
     printMIn24(startMinute);
-    Serial.print("Stopping at :");
+    Serial.print(F("Stopping at :"));
     printMIn24(stopMinute);
   }
 
   if (minutesFromMidnight < stopMinute) {
     if (printMessages) {
-      Serial.print("Before Sunrise, will stop in: ");
+      Serial.print(F("Before Sunrise, will stop in: "));
       int minutesLeft = stopMinute - minutesFromMidnight;
       printMIn24(minutesLeft);
     }
@@ -111,7 +110,7 @@ bool RTC::isInActiveWindow(bool printMessages) {
   }
   else if (minutesFromMidnight > startMinute) {
     if (printMessages) {
-      Serial.print("After Sunset, will stop in: ");
+      Serial.print(F("After Sunset, will stop in: "));
       int minutesLeft = stopMinute + 24*60 - minutesFromMidnight;
       printMIn24(minutesLeft);
     }
