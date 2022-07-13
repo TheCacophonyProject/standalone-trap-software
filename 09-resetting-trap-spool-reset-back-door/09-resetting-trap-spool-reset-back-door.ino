@@ -12,7 +12,7 @@
 //LinearActuator linearActuator(LA_PWM, LA_SENSE, LA_FORWARD, LA_BACK);
 RTC rtc; //TODO Rename to time Window
 
-unsigned long lastMovementTime = 0;
+unsigned long triggerTime = 0;
 unsigned long baitTriggerTime = 0;
 Servo spoolServo1;
 Servo spoolServo2;
@@ -22,7 +22,8 @@ enum State {
   WAITING_FOR_ACTIVE_WINDOW,
   WAITING_FOR_MAIN_TRIGGER,
   WAITING_FOR_RESET,
-  WAITING_FOR_CAGE_PIR
+  WAITING_FOR_CAGE_PIR,
+  CAUGHT_PEST
 };
 
 State state = WAITING_FOR_MAIN_TRIGGER;
@@ -50,8 +51,8 @@ void setup() {
 
   //============ INIT SYSTEMS ===============
   Serial.begin(57600);
-  Serial.println("\n\nCode: 09-resetting-trap-spool-reset-back-door");
-  Serial.println("Start init systems");
+  Serial.println(F("\n\nCode: 09-resetting-trap-spool-reset-back-door v2"));
+  Serial.println(F("Start init systems"));
 
 
   //============ TESTS ======================
@@ -95,6 +96,12 @@ void setState(State newState) {
     case WAITING_FOR_RESET:
       Serial.println(F("Switching state to: Waiting for trap reset"));
       break;
+    case WAITING_FOR_CAGE_PIR:
+      Serial.println(F("Switching state to: Waiting for cage PIR"));
+      break;
+    case CAUGHT_PEST:
+      Serial.println(F("Switching state to: Caught pest"));
+      break;
     default:
       Serial.println(F("Switching to unknown state"));
       break;
@@ -105,12 +112,12 @@ void loop() {
   switch (state) {
     case WAITING_FOR_ACTIVE_WINDOW:
       if (digitalRead(BAIT_TRIG_PIN) == LOW) {
-        Serial.println("manual trigger of bait");
+        Serial.println(F("manual trigger of bait"));
         triggerBait();
       }
       if (rtc.isInActiveWindow(false)) {
         rtc.isInActiveWindow(true);
-        Serial.println("Active window started. Waiting for main trigger.");
+        Serial.println(F("Active window started. Waiting for main trigger."));
         setState(WAITING_FOR_MAIN_TRIGGER);
       }
       break;
@@ -118,18 +125,17 @@ void loop() {
     case WAITING_FOR_MAIN_TRIGGER:
       if (!rtc.isInActiveWindow(false)) {
         rtc.isInActiveWindow(true);
-        Serial.println("No longer in active window. Waiting for active window.");
+        Serial.println(F("No longer in active window. Waiting for active window."));
         setState(WAITING_FOR_ACTIVE_WINDOW);
         break;
       }
       //Waiting for the PIR to be triggered
       if (digitalRead(PIR) == LOW) {
-        Serial.println("Main PIR triggered. Closing blinds");
-        lastMovementTime = millis();
+        Serial.println(F("Main PIR triggered. Closing blinds"));
+        triggerTime = millis();
         delay(2000);
         triggerTrap();
         setState(WAITING_FOR_CAGE_PIR);
-        Serial.println("Waiting for animal to move into cage");
       }
       // Check if food should be dispensed
       checkBait(false);
@@ -138,23 +144,22 @@ void loop() {
     case WAITING_FOR_CAGE_PIR:
       if (analogRead(CAGE_PIR) > 100) {
         triggerRatchetDoor();
-        delay(5000);
+        delay(1000);
         resetTrap();
-        setState(WAITING_FOR_RESET);
+        setState(CAUGHT_PEST);
       }
+      if (millis() - triggerTime > RESET_WAIT_TIME) {
+        Serial.println(F("Timeout for cage trigger. Resetting trap."));
+        resetTrap();
+        delay(10000);
+        setState(WAITING_FOR_MAIN_TRIGGER);
+      }
+      
       break;
 
 
-    case WAITING_FOR_RESET:
-      if (analogRead(CAGE_PIR) > 100) {
-        Serial.println("Movement detected, reseting wait time.");
-        lastMovementTime = millis();
-      }
-      if (millis() - lastMovementTime > RESET_WAIT_TIME) {
-        Serial.println("No movement for a while. Assuming pest is dead.");
-        resetRatchetDoor();
-        setState(WAITING_FOR_MAIN_TRIGGER);
-      }
+    case CAUGHT_PEST:
+      delay(1000);
       break;
   }
 }
@@ -162,27 +167,27 @@ void loop() {
 
 //===================BAIT==============
 void initBait() {
-  Serial.print("Running Bait init...  ");
+  Serial.print(F("Running Bait init...  "));
   triggerBait();
-  Serial.println("Done");
+  Serial.println(F("Done"));
 }
 
 void checkBait(bool printMessages) {
   if (digitalRead(BAIT_TRIG_PIN) == LOW) {
-    Serial.println("manual trigger of bait");
+    Serial.println(F("manual trigger of bait"));
     triggerBait();
   }
   long d = analogRead(BAIT_DELAY_PIN);
   if (d > 1000) {
     if (printMessages) {
-      Serial.println("bait disabled");
+      Serial.println(F("bait disabled"));
     }
     return;
   }
   d = map(d, 0, 1024, BAIT_DELAY_MIN/1000, BAIT_DELAY_MAX/1000); // was getting overflow 
   d = d*1000;
   if (printMessages) {
-    Serial.print("bait delay(ms): ");
+    Serial.print(F("bait delay(ms): "));
     Serial.println(d);
   }
   if (millis() - baitTriggerTime > d) {
@@ -192,19 +197,19 @@ void checkBait(bool printMessages) {
 
 void triggerBait() {
   long duration = map(analogRead(BAIT_DURATION_PIN), 0, 1024, BAIT_DURATION_MIN, BAIT_DURATION_MAX);
-  Serial.print("running bait for: ");
+  Serial.print(F("running bait for: "));
   Serial.println(duration);
   digitalWrite(BAIT_PIN, HIGH);
   delay(duration);
   digitalWrite(BAIT_PIN, LOW);
   baitTriggerTime = millis();
-  Serial.println("Stopping bait and waiting 10 seconds before returning to main loop");
+  Serial.println(F("Stopping bait and waiting 10 seconds before returning to main loop"));
   delay(10000); // Wait 10 seconds so if the bait movement triggered the PIR it has time to turn off.
 }
 
 //===========SERVOS===============
 void initServo() {
-  Serial.print("Running Servo init...  ");
+  Serial.print(F("Running Servo init...  "));
   spoolServo1.attach(SERVO_1_PIN);
   moveServo(spoolServo1, SERVO_HOME, 2000);
   spoolServo2.attach(SERVO_2_PIN);
@@ -223,26 +228,26 @@ void moveServo(Servo s, int sig_us, int mill) {
 
 
 void resetSpool(Servo s) {
-  Serial.println("Resetting a spool");
+  Serial.println(F("Resetting a spool"));
   digitalWrite(ENABLE_6V_PIN, HIGH);
   delay(200);
   s.writeMicroseconds(SERVO_RESET);
   delay(3000);
   s.writeMicroseconds(SERVO_HOME);
   delay(2000);
-  Serial.println("Done resetting a spool.");
+  Serial.println(F("Done resetting a spool."));
   digitalWrite(ENABLE_6V_PIN, LOW);
 }
 
 void resetTrap() {
-  Serial.println("Resetting trap");
+  Serial.println(F("Resetting trap"));
   resetSpool(spoolServo1);
   resetSpool(spoolServo2);
-  Serial.println("Finished resetting trap");
+  Serial.println(F("Finished resetting trap"));
 }
 
 void triggerTrap() {
-  Serial.println("Trigger spools");
+  Serial.println(F("Trigger spools"));
   digitalWrite(ENABLE_6V_PIN, HIGH);
   spoolServo1.writeMicroseconds(SERVO_TRIGGER);
   spoolServo2.writeMicroseconds(SERVO_TRIGGER);
@@ -252,12 +257,12 @@ void triggerTrap() {
   spoolServo2.writeMicroseconds(SERVO_HOME);
   delay(1000);
   digitalWrite(ENABLE_6V_PIN, LOW);
-  Serial.println("Done");
+  Serial.println(F("Done"));
 }
 
 void resetRatchetDoor() {
   digitalWrite(ENABLE_6V_PIN, HIGH);
-  Serial.println("Starting ratchet cycle");
+  Serial.println(F("Starting ratchet cycle"));
   for (int i = 0; i < RATCHET_CYCLES; i++) {
     Serial.print("Cycle: ");
     Serial.println(i+1);
@@ -271,7 +276,7 @@ void resetRatchetDoor() {
 }
 
 void triggerRatchetDoor() {
-  Serial.println("Releasing door");
+  Serial.println(F("Releasing door"));
   digitalWrite(ENABLE_6V_PIN, HIGH);
   ratchetServo.writeMicroseconds(SERVO_RELEASE);
   delay(1000);
@@ -290,11 +295,11 @@ void testRTC() {
 
 void testFeeder() {
   while(true){
-    Serial.println("feeder on");
+    Serial.println(F("feeder on"));
     digitalWrite(BAIT_PIN, HIGH);
     delay(5000);
 
-    Serial.println("feeder off");
+    Serial.println(F("feeder off"));
     digitalWrite(BAIT_PIN, LOW);
     delay(5000);
   }
@@ -303,20 +308,20 @@ void testFeeder() {
 
 void testDigitalIO() {
   while(true) {
-    Serial.println("====================================");
-    Serial.print("bait trig: ");
+    Serial.println(F("===================================="));
+    Serial.print(F("bait trig: "));
     Serial.println(digitalRead(BAIT_TRIG_PIN));
     
-    Serial.print("bait duration: ");
+    Serial.print(F("bait duration: "));
     Serial.println(analogRead(BAIT_DURATION_PIN));
   
-    Serial.print("bait delay: ");
+    Serial.print(F("bait delay: "));
     Serial.println(analogRead(BAIT_DELAY_PIN));
 
-    Serial.print("PIR: ");
+    Serial.print(F("PIR: "));
     Serial.println(digitalRead(PIR));
 
-    Serial.print("24/7: ");
+    Serial.print(F("24/7: "));
     Serial.println(digitalRead(DAYTIME_MODE_PIN));
     delay(1000);
   }

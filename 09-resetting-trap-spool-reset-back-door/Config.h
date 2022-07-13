@@ -52,6 +52,8 @@
 
 #define RESET_WAIT_TIME 600000 // 10 minnutes in millisecodns 10*60*1000
 
+//#define RESET_WAIT_TIME 10000 // 10 seconds, just for testing
+
 #define BAIT_DURATION_MIN 2000  // 2 seconds in milliseconds 
 #define BAIT_DURATION_MAX 10000  // 10 seconds in milliseconds 
 

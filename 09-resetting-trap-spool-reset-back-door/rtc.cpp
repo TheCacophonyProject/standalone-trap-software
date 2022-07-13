@@ -48,7 +48,7 @@ boolean RTC::dateTimeMatchEEPROMDateTime() {
   String datetime = String(__DATE__)+String(__TIME__);
   for (int i = 0; i<datetime.length(); i++) {
     if (EEPROM.read(i) != int(datetime[i])) {
-      Serial.println("Writing new time to RTC");
+      Serial.println(F("Writing new time to RTC"));
       return false;
     }
   }
@@ -82,7 +82,7 @@ bool RTC::isInActiveWindow(bool printMessages) {
   }
   if (digitalRead(DAYTIME_MODE_PIN) == LOW) {
     if (printMessages) {
-      Serial.println("24/7 switch is on");
+      Serial.println(F("24/7 switch is on"));
     }
     return true;
   }
@@ -118,7 +118,7 @@ bool RTC::isInActiveWindow(bool printMessages) {
   }
   else {
     if (printMessages) {
-      Serial.print("During off period. Need to wait: ");
+      Serial.print(F("During off period. Need to wait: "));
       printMIn24(startMinute - minutesFromMidnight);
     }
     return false;
