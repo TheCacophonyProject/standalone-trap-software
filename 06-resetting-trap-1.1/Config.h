@@ -1,7 +1,7 @@
 #ifndef config_h
 #define config_h
 
-#define DAYTIME_MODE_PIN 3
+#define DAYTIME_MODE_PIN 10
 #define LED_STATUS_PIN 13
 #define PIR 2
 //#define BEAM 7
