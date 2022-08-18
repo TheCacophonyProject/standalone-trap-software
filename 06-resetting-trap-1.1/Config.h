@@ -19,6 +19,11 @@
 
 #define LAT -43.388018
 #define LONG 172.525346
+#define TIMEZONE 13
+
+//#define LAT 19.513469
+//#define LONG -80.566956
+//#define TIMEZONE -5
 
 #define MINUTES_AFTER_SUNSET 60
 #define MINUTES_BEFORE_SUNRISE 60

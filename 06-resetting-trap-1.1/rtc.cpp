@@ -5,51 +5,49 @@
 
 #include <RTClib.h>     // https://github.com/adafruit/RTClib
 #include <Dusk2Dawn.h>  // https://github.com/dmkishi/Dusk2Dawn
-#define a b
 
-Dusk2Dawn d2d_chch(LAT, LONG, 13);
+Dusk2Dawn d2d_chch(LAT, LONG, TIMEZONE);
 
 void RTC::setup() {
   pinMode(DAYTIME_MODE_PIN, INPUT_PULLUP);
 }
 
-void RTC::init() {
-  Serial.print("Running RTC init...  ");
+void RTC::init(DateTime compileDateTime) {
+  Serial.print(F("Running RTC init...  "));
   if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    Serial.println(F("Couldn't find RTC"));
     return; // STATUS_CODE_RTC_NOT_FOUND;
   } else if (!rtc.isrunning()) {
-    Serial.println("RTC is NOT running.");
-    return; // STATUS_CODE_RTC_TIME_NOT_SET;
+    Serial.println(F("RTC is NOT running."));
   }
   
-  if (dateTimeMatchEEPROMDateTime()) {
+  if (dateTimeMatchEEPROMDateTime(compileDateTime)) {
     // RTC already written to. Check that the RTC hasn't lost track.
-    printDateTime(DateTime(F(__DATE__), F(__TIME__)));
+    Serial.println(compileDateTime.timestamp());
     
-    if (rtc.now().unixtime() < DateTime(F(__DATE__), F(__TIME__)).unixtime()) {
-      Serial.print("RTC has lost track of time. It thinks the time is ");
-      printDateTime(rtc.now());
-      Serial.print("But the code was updated on");
-      printDateTime(DateTime(F(__DATE__), F(__TIME__)));
+    if (rtc.now().unixtime() < compileDateTime.unixtime()) {
+      Serial.print(F("RTC has lost track of time. It thinks the time is "));
+      Serial.println(rtc.now().timestamp());
+      Serial.print(F("But the code was updated on"));
+      Serial.println(compileDateTime.timestamp());
       blinkStatus(STATUS_CODE_RTC_TIME_NOT_SET, true);
       return;
     }
-    Serial.println("RTC set");
+    Serial.println(F("RTC set"));
     return;
   }
 
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  writeDateTimeToEEPROM();
-  Serial.println("New time written to RTC");
+  rtc.adjust(compileDateTime);
+  writeDateTimeToEEPROM(compileDateTime);
+  Serial.println(F("New time written to RTC"));
 }
 
 // Check if the datetime has already been written to the RTC.
-boolean RTC::dateTimeMatchEEPROMDateTime() {
-  String datetime = String(__DATE__)+String(__TIME__);
+boolean RTC::dateTimeMatchEEPROMDateTime(DateTime dt) {
+  String datetime = dt.timestamp();
   for (int i = 0; i<datetime.length(); i++) {
     if (EEPROM.read(i) != int(datetime[i])) {
-      Serial.println("Writing new time to RTC");
+      Serial.println(F("Writing new time to RTC"));
       return false;
     }
   }
@@ -57,8 +55,8 @@ boolean RTC::dateTimeMatchEEPROMDateTime() {
 }
 
 //Save date time that was writtent to EEPROM so next boot it won't write to the RTC again.
-void RTC::writeDateTimeToEEPROM() {
-  String datetime = String(__DATE__)+String(__TIME__);
+void RTC::writeDateTimeToEEPROM(DateTime dt) {
+  String datetime = dt.timestamp();
   for (int i = 0; i<datetime.length(); i++) {
     EEPROM.write(i, int(datetime[i]));
   }

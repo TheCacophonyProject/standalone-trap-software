@@ -58,8 +58,12 @@ void setup() {
   //testDigitalIO();
   //servoAngleTest();
 
+
+  //Get time of compile or manually set time. Note you may want to change TIMEZONE, LAT, and LONG in config also.
+  rtc.init(DateTime(F(__DATE__), F(__TIME__)));
+  //rtc.init(DateTime("Aug 17 2022", "22:48:00"));
   
-  rtc.init();
+  
   rtc.isInActiveWindow(true); // Print out time status
   linearActuator.init();
   initServo();
@@ -212,7 +216,7 @@ void resetTrap() {
 //========== TEST ==================
 
 void testRTC() {
-  rtc.init();
+  rtc.init(DateTime(F(__DATE__), F(__TIME__)));
   while(true) {
     rtc.isInActiveWindow(true); // Print out time status
     delay(5000);
